@@ -1,6 +1,8 @@
-# algoliasearch
+# algoliasearch 
 
 `algoliasearch` is a (really incomplete) rust implemention of an algolia client.
+
+[![Build Status](https://dev.azure.com/nicompte/algoliasearch-rs/_apis/build/status/nicompte.algoliasearch-rs?branchName=master)](https://dev.azure.com/nicompte/algoliasearch-rs/_build/latest?definitionId=1&branchName=master)
 
 ### usage
 
