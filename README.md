@@ -19,13 +19,16 @@ struct User {
 
 fn main() -> Result<(), Box<std::error::Error>> {
     // read ALGOLIA_APPLICATION_ID and ALGOLIA_API_KEY from env
-    let index = Client::default().init_index::<User>("INDEX_NAME");
-
-    let res = index.search("Bernardo")?;
-    dbg!(res.hits); // [User { name: "Bernardo", age: 32 }]
-
-    let element = index.get_object("8888888")?;
-    dbg!(res); // User { name: "Bernardo", age: 32 }
+    let index = Client::default().init_index::<User>("users");
+    let fut = index.search("Bernardo")
+        .map(|res| {
+            dbg!(res.hits); // [User { name: "Bernardo", age: 32} ]
+        })
+        .map_err(|err| {
+            eprintln!("{:?}", err);
+        });
+    tokio::run(fut);
+    Ok(())
 }
 ```
 
