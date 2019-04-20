@@ -6,33 +6,7 @@
 [![Documentation](https://docs.rs/algoliasearch/badge.svg)](https://docs.rs/algoliasearch)
 [![Build Status](https://dev.azure.com/nicompte/algoliasearch-rs/_apis/build/status/nicompte.algoliasearch-rs?branchName=master)](https://dev.azure.com/nicompte/algoliasearch-rs/_build/latest?definitionId=1&branchName=master)
 
-### usage
-
-```rust
-use algoliasearch::Client;
-
-#[derive(Deserialize)]
-struct User {
-    name: String, 
-    age: u32,
-}
-
-fn main() -> Result<(), Box<std::error::Error>> {
-    // read ALGOLIA_APPLICATION_ID and ALGOLIA_API_KEY from env
-    let index = Client::default().init_index::<User>("users");
-    let fut = index.search("Bernardo")
-        .map(|res| {
-            dbg!(res.hits); // [User { name: "Bernardo", age: 32} ]
-        })
-        .map_err(|err| {
-            eprintln!("{:?}", err);
-        });
-    tokio::run(fut);
-    Ok(())
-}
-```
-
-#### async usage
+#### usage
 
 ```rust
 use algoliasearch::Client;
