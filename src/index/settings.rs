@@ -506,12 +506,14 @@ pub struct IndexSettings {
     // typos
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "minWordSizefor1Typo")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/minWordSizefor1Typo/](https://www.algolia.com/doc/api-reference/api-parameters/minWordSizefor1Typo/)
-    pub min_word_sizefor1_typo: Option<u64>,
+    pub min_word_sizefor_1_typo: Option<u64>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "minWordSizefor2Typo")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/minWordSizefor2Typos/](https://www.algolia.com/doc/api-reference/api-parameters/minWordSizefor2Typos/)
-    pub min_word_sizefor2_typos: Option<u64>,
+    pub min_word_sizefor_2_typos: Option<u64>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/typoTolerance/](https://www.algolia.com/doc/api-reference/api-parameters/typoTolerance/)
