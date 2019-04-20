@@ -443,6 +443,7 @@ pub struct IndexSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/](https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/)
     pub attributes_to_retrieve: Option<Vec<String>>,
+
     // ranking
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -456,6 +457,7 @@ pub struct IndexSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/replicas/](https://www.algolia.com/doc/api-reference/api-parameters/replicas/)
     pub replicas: Option<Vec<String>>,
+
     // faceting
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -490,6 +492,7 @@ pub struct IndexSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/restrictHighlightAndSnippetArrays/](https://www.algolia.com/doc/api-reference/api-parameters/restrictHighlightAndSnippetArrays/)
     pub restrict_highlight_and_snippet_arrays: Option<bool>,
+
     // pagination
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -499,6 +502,7 @@ pub struct IndexSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/paginationLimitedTo/](https://www.algolia.com/doc/api-reference/api-parameters/paginationLimitedTo/)
     pub pagination_limited_to: Option<u64>,
+
     // typos
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -528,6 +532,7 @@ pub struct IndexSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/separatorsToIndex/](https://www.algolia.com/doc/api-reference/api-parameters/separatorsToIndex/)
     pub separators_to_index: Option<String>,
+
     // languages
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -553,6 +558,7 @@ pub struct IndexSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/queryLanguages/](https://www.algolia.com/doc/api-reference/api-parameters/queryLanguages/)
     pub query_languages: Option<Vec<String>>,
+
     // query-strategy
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -590,6 +596,7 @@ pub struct IndexSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/enableRules/](https://www.algolia.com/doc/api-reference/api-parameters/enableRules/)
     pub enable_rules: Option<bool>,
+
     // performance
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]

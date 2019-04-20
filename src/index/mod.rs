@@ -6,7 +6,6 @@ use futures::{Future, Stream};
 use reqwest::{
     header::HeaderMap,
     r#async::{Client as AsyncClient, Decoder},
-    Client as SyncClient,
 };
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
@@ -43,19 +42,32 @@ pub struct SearchResult<T> {
 /// algolia search parameters
 /// see [https://www.algolia.com/doc/api-reference/search-api-parameters/](https://www.algolia.com/doc/api-reference/search-api-parameters/)
 pub struct SearchQuery {
+    
+    // search
     #[builder(setter(into))]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/query/](https://www.algolia.com/doc/api-reference/api-parameters/query/)
     query: Option<String>,
+    
+    // attributes
     #[builder(setter(into))]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/](https://www.algolia.com/doc/api-reference/api-parameters/attributesToRetrieve/)
     attributes_to_retrieve: Option<Vec<String>>,
     #[builder(setter(into))]
+    /// [](https://www.algolia.com/doc/api-reference/api-parameters/restrictSearchableAttributes/https://www.algolia.com/doc/api-reference/api-parameters/restrictSearchableAttributes/)
     restrict_searchable_attributes: Option<Vec<String>>,
+
+    // pagination
     #[builder(setter(into))]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/page/](https://www.algolia.com/doc/api-reference/api-parameters/page/)
     page: Option<u64>,
     #[builder(setter(into))]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/hitsPerPage/](https://www.algolia.com/doc/api-reference/api-parameters/hitsPerPage/)
     hits_per_page: Option<u64>,
     #[builder(setter(into))]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/offset/](https://www.algolia.com/doc/api-reference/api-parameters/offset/)
     offset: Option<u64>,
     #[builder(setter(into))]
+    /// [https://www.algolia.com/doc/api-reference/api-parameters/length/](https://www.algolia.com/doc/api-reference/api-parameters/length/)
     length: Option<u64>,
 }
 
@@ -152,270 +164,8 @@ pub struct Index<T> {
 }
 
 impl<T: DeserializeOwned + Serialize> Index<T> {
-    /// Search the index.
-    ///
+    /// Search the index.    
     /// This method accepts a [&str](https://doc.rust-lang.org/std/str/index.html):
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::Client;
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User;
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// let res = index.search("Bernardo")?;
-    /// #   Ok(())
-    /// # }
-    /// ```
-    /// Or a SearchQuery object, that can be build with the [SearchQueryBuilder](struct.SearchQueryBuilder.html):
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{Client, SearchQueryBuilder};
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User;
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// let query = SearchQueryBuilder::default()
-    ///     .query("Bernardo".to_string())
-    ///     .page(1)
-    ///     .build()?;
-    /// let res = index.search(query)?;
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn search(&self, query: impl Into<SearchQuery>) -> Result<SearchResult<T>, reqwest::Error> {
-        let query = query.into();
-        let uri = format!("{}/indexes/{}/query", self.base_url, self.index_name);
-        let params = serde_urlencoded::to_string(query).expect("failed to encode params");
-        let params = &SearchQueryBody { params };
-        SyncClient::new()
-            .post(&uri)
-            .headers(self.get_headers())
-            .json(&params)
-            .send()?
-            .json()
-    }
-    /// Get an object from the index.
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{Client, SearchQueryBuilder};
-    /// # #[derive(Serialize, Deserialize, Debug)]
-    /// # struct User;
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// let object_1 = index.get_object(&"THE_ID", None)?;
-    /// dbg!(object_1); // User { name: "Bernardo", age: 32 };
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn get_object(
-        &self,
-        object_id: &str,
-        attributes_to_retrieve: Option<&[&str]>,
-    ) -> Result<T, reqwest::Error> {
-        let uri = format!(
-            "{}/indexes/{}/{}",
-            self.base_url, self.index_name, object_id
-        );
-        SyncClient::new()
-            .get(&uri)
-            .headers(self.get_headers())
-            .query(&[(
-                "attributes_to_retrieve",
-                attributes_to_retrieve.map(|el| el.join(",")),
-            )])
-            .send()?
-            .json()
-    }
-    /// Add an object to the index.
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{Client, SearchQueryBuilder};
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User { name: String, age: u32, };
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// let object_1 = User { name: "Bernardo".into(), age: 32 };
-    /// index.add_object(object_1)?;
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn add_object(&self, object: T) -> Result<AddObjectResult, reqwest::Error> {
-        let uri = format!("{}/1/indexes/{}", self.base_url, self.index_name);
-        SyncClient::new()
-            .post(&uri)
-            .headers(self.get_headers())
-            .json(&object)
-            .send()?
-            .json()
-    }
-    /// Add several objects to the index.
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{Client, SearchQueryBuilder};
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User { name: String, age: u32, };
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// let object_1 = User { name: "Bernardo".into(), age: 32 };
-    /// let object_2 = User { name: "Esmeralda".into(), age: 45 };
-    /// index.add_objects(&[object_1, object_2])?;
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn add_objects(&self, objects: &[T]) -> Result<BatchedOperatioResult, reqwest::Error> {
-        let uri = format!("{}/1/indexes/{}/batch", self.base_url, self.index_name);
-        let requests = objects.iter().fold(vec![], |mut acc, x| {
-            acc.push(BatchedOperationItem {
-                action: "addObject".to_string(),
-                body: x,
-            });
-            acc
-        });
-        let requests = BatchedOperation { requests };
-        SyncClient::new()
-            .post(&uri)
-            .headers(self.get_headers())
-            .json(&requests)
-            .send()?
-            .json()
-    }
-    /// Add/update an object to the index. The object will be updated if you provide
-    /// a `user_id` property, and added otherwise.
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{Client, SearchQueryBuilder};
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User;
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// #   let object_1 = User;
-    /// index.update_object(object_1)?;
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn update_object(&self, object: T) -> Result<UpdateOperationResult, reqwest::Error> {
-        let uri = format!("{}/1/indexes/{}", self.base_url, self.index_name);
-        SyncClient::new()
-            .put(&uri)
-            .headers(self.get_headers())
-            .json(&object)
-            .send()?
-            .json()
-    }
-    /// Add/update several objects to the index. The objects will be updated if you provide
-    /// a `user_id` property, and added otherwise.
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{Client, SearchQueryBuilder};
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User;
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// #   let object_1 = User;
-    /// #   let object_2 = User;
-    /// index.update_objects(&[object_1, object_2])?;
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn update_objects(&self, objects: &[T]) -> Result<BatchedOperatioResult, reqwest::Error> {
-        let uri = format!("{}/1/indexes/{}/batch", self.base_url, self.index_name);
-        let requests = objects.iter().fold(vec![], |mut acc, x| {
-            acc.push(BatchedOperationItem {
-                action: "updateObject".to_string(),
-                body: x,
-            });
-            acc
-        });
-        let requests = BatchedOperation { requests };
-        SyncClient::new()
-            .post(&uri)
-            .headers(self.get_headers())
-            .json(&requests)
-            .send()?
-            .json()
-    }
-    /// Delete an object from the index.
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{Client, SearchQueryBuilder};
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User { object_id: String, };
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// #   let object_1 = User { object_id: "test".into(), };
-    /// index.delete_object(&object_1.object_id)?;
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn delete_object(&self, object_id: &str) -> Result<DeleteObjectResult, reqwest::Error> {
-        let uri = format!(
-            "{}/1/indexes/{}/{}",
-            self.base_url, self.index_name, object_id
-        );
-        SyncClient::new()
-            .delete(&uri)
-            .headers(self.get_headers())
-            .send()?
-            .json()
-    }
-    /// Get the index's settings.
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{Client, SearchQueryBuilder};
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User;
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// let settings = index.get_settings()?;
-    /// dbg!(settings.hits_per_page); // 20
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn get_settings(&self) -> Result<settings::IndexSettings, reqwest::Error> {
-        let uri = format!("{}/indexes/{}/settings", self.base_url, self.index_name);
-        SyncClient::new()
-            .get(&uri)
-            .headers(self.get_headers())
-            .send()?
-            .json()
-    }
-    /// Set the index's settings.
-    /// ```no_run
-    /// # #[macro_use] extern crate serde_derive;
-    /// # use algoliasearch::{
-    /// #    Client, SearchQueryBuilder,
-    /// #    settings::{IndexSettingsBuilder, SortFacetValuesBy}
-    /// # };
-    /// # #[derive(Serialize, Deserialize)]
-    /// # struct User;
-    /// # fn main() -> Result<(), Box<std::error::Error>> {
-    /// #   let index = Client::default().init_index::<User>("users");
-    /// let settings = IndexSettingsBuilder::default()
-    ///     .hits_per_page(30)
-    ///     .sort_facet_values_by(SortFacetValuesBy::Count)
-    ///     .build()
-    ///     .unwrap();
-    /// index.set_settings(settings, None)?;
-    /// #   Ok(())
-    /// # }
-    /// ```
-    pub fn set_settings(
-        &self,
-        settings: settings::IndexSettings,
-        forward_to_replicas: Option<bool>,
-    ) -> Result<UpdateOperationResult, reqwest::Error> {
-        let forward_to_replicas = forward_to_replicas.unwrap_or(false);
-        let uri = format!("{}/indexes/{}/settings", self.base_url, self.index_name);
-        SyncClient::new()
-            .put(&uri)
-            .headers(self.get_headers())
-            .json(&settings)
-            .query(&[("forwardToReplicas", forward_to_replicas)])
-            .send()?
-            .json()
-    }
-    /// Asynchronously search the index.
-    /// It can use the same [SearchQueryBuilder](struct.SearchQueryBuilder.html) as [search()](struct.Index.html#method.search):
     /// ```no_run
     /// # #[macro_use] extern crate serde_derive;
     /// # use futures::Future;
@@ -424,17 +174,39 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # struct User;
     /// # fn main() -> Result<(), Box<std::error::Error>> {
     /// # let index = Client::default().init_index::<User>("users");
-    /// let test = index
-    ///     .search_async("Bernardo")
+    /// let fut = index
+    ///     .search("Bernardo")
     ///     .map(|res| {
     ///        dbg!(res.hits); // [User { name: "Bernardo", age: 32} ]
     ///     })
     ///     .map_err(|err| eprintln!("error: {:?}", err));
-    /// tokio::run(test);
+    /// tokio::run(fut);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn search_async(
+    /// Or a SearchQuery object, that can be build with the [SearchQueryBuilder](struct.SearchQueryBuilder.html):
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{Client, SearchQueryBuilder};
+    /// # #[derive(Debug, Serialize, Deserialize)]
+    /// # struct User;
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// let query = SearchQueryBuilder::default()
+    ///     .query("Bernardo".to_string())
+    ///     .page(1)
+    ///     .build()?;
+    /// let fut = index.search(query)
+    ///     .map(|res| {
+    ///        dbg!(res.hits); // [User { name: "Bernardo", age: 32} ]
+    ///     })
+    ///     .map_err(|err| eprintln!("error: {:?}", err));
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn search(
         &self,
         query: impl Into<SearchQuery>,
     ) -> impl Future<Item = SearchResult<T>, Error = FetchError> {
@@ -464,5 +236,319 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
         );
         headers.insert(crate::API_KEY_HEADER, self.api_key.parse().unwrap());
         headers
+    }
+    /// Get an object from the index.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{Client, SearchQueryBuilder};
+    /// # #[derive(Serialize, Deserialize, Debug)]
+    /// # struct User;
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// let fut = index.get_object(&"THE_ID", None)
+    ///     .map(|res| {
+    ///         dbg!(&res); // User { name: "Bernardo", age: 32 };
+    ///     })
+    ///     .map_err(|err| { eprintln!("{:?}", err); });
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn get_object(
+        &self,
+        object_id: &str,
+        attributes_to_retrieve: Option<&[&str]>,
+    ) -> impl Future<Item = T, Error = FetchError> {
+        let uri = format!(
+            "{}/indexes/{}/{}",
+            self.base_url, self.index_name, object_id
+        );
+        AsyncClient::new()
+            .get(&uri)
+            .headers(self.get_headers())
+            .query(&[(
+                "attributes_to_retrieve",
+                attributes_to_retrieve.map(|el| el.join(",")),
+            )])
+            .send()
+            .and_then(|mut res| {
+                let body = mem::replace(res.body_mut(), Decoder::empty());
+                body.concat2()
+            })
+            .from_err::<FetchError>()
+            .and_then(|body| Ok(serde_json::from_slice(&body)?))
+            .from_err::<FetchError>()
+    }
+    /// Add an object to the index.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{Client, SearchQueryBuilder};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User { name: String, age: u32, };
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// let object_1 = User { name: "Bernardo".into(), age: 32 };
+    /// let fut = index.add_object(object_1)
+    ///     .map(|res| { dbg!(&res); })
+    ///     .map_err(|err| { eprintln!("{:?}", err); });
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn add_object(&self, object: T) -> impl Future<Item = AddObjectResult, Error = FetchError> {
+        let uri = format!("{}/1/indexes/{}", self.base_url, self.index_name);
+        AsyncClient::new()
+            .post(&uri)
+            .headers(self.get_headers())
+            .json(&object)
+            .send()
+            .and_then(|mut res| {
+                let body = mem::replace(res.body_mut(), Decoder::empty());
+                body.concat2()
+            })
+            .from_err::<FetchError>()
+            .and_then(|body| Ok(serde_json::from_slice(&body)?))
+            .from_err::<FetchError>()
+    }
+    /// Add several objects to the index.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use algoliasearch::{Client, SearchQueryBuilder};
+    /// # use futures::Future;
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User { name: String, age: u32, };
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// let object_1 = User { name: "Bernardo".into(), age: 32 };
+    /// let object_2 = User { name: "Esmeralda".into(), age: 45 };
+    /// let fut = index.add_objects(&[object_1, object_2])
+    ///     .map(|res| { dbg!(&res); })
+    ///     .map_err(|err| { eprintln!("{:?}", err); });
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn add_objects(
+        &self,
+        objects: &[T],
+    ) -> impl Future<Item = BatchedOperatioResult, Error = FetchError> {
+        let uri = format!("{}/1/indexes/{}/batch", self.base_url, self.index_name);
+        let requests = objects.iter().fold(vec![], |mut acc, x| {
+            acc.push(BatchedOperationItem {
+                action: "addObject".to_string(),
+                body: x,
+            });
+            acc
+        });
+        let requests = BatchedOperation { requests };
+        AsyncClient::new()
+            .post(&uri)
+            .headers(self.get_headers())
+            .json(&requests)
+            .send()
+            .and_then(|mut res| {
+                let body = mem::replace(res.body_mut(), Decoder::empty());
+                body.concat2()
+            })
+            .from_err::<FetchError>()
+            .and_then(|body| Ok(serde_json::from_slice(&body)?))
+            .from_err::<FetchError>()
+    }
+    /// Add/update an object to the index. The object will be updated if you provide
+    /// a `user_id` property, and added otherwise.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{Client, SearchQueryBuilder};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User;
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// #   let object_1 = User;
+    /// let fut = index.update_object(object_1)
+    ///     .map(|res| { dbg!(&res); })
+    ///     .map_err(|err| { eprintln!("{:?}", err); });
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn update_object(
+        &self,
+        object: T,
+    ) -> impl Future<Item = UpdateOperationResult, Error = FetchError> {
+        let uri = format!("{}/1/indexes/{}", self.base_url, self.index_name);
+        AsyncClient::new()
+            .put(&uri)
+            .headers(self.get_headers())
+            .json(&object)
+            .send()
+            .and_then(|mut res| {
+                let body = mem::replace(res.body_mut(), Decoder::empty());
+                body.concat2()
+            })
+            .from_err::<FetchError>()
+            .and_then(|body| Ok(serde_json::from_slice(&body)?))
+            .from_err::<FetchError>()
+    }
+    /// Add/update several objects to the index. The objects will be updated if you provide
+    /// a `user_id` property, and added otherwise.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{Client, SearchQueryBuilder};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User;
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// #   let object_1 = User;
+    /// #   let object_2 = User;
+    /// let fut = index.update_objects(&[object_1, object_2])
+    ///     .map(|res| { dbg!(&res); })
+    ///     .map_err(|err| { eprintln!("{:?}", err); });
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn update_objects(
+        &self,
+        objects: &[T],
+    ) -> impl Future<Item = BatchedOperatioResult, Error = FetchError> {
+        let uri = format!("{}/1/indexes/{}/batch", self.base_url, self.index_name);
+        let requests = objects.iter().fold(vec![], |mut acc, x| {
+            acc.push(BatchedOperationItem {
+                action: "updateObject".to_string(),
+                body: x,
+            });
+            acc
+        });
+        let requests = BatchedOperation { requests };
+        AsyncClient::new()
+            .post(&uri)
+            .headers(self.get_headers())
+            .json(&requests)
+            .send()
+            .and_then(|mut res| {
+                let body = mem::replace(res.body_mut(), Decoder::empty());
+                body.concat2()
+            })
+            .from_err::<FetchError>()
+            .and_then(|body| Ok(serde_json::from_slice(&body)?))
+            .from_err::<FetchError>()
+    }
+    /// Delete an object from the index.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{Client, SearchQueryBuilder};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User { object_id: String, };
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// #   let object_1 = User { object_id: "test".into(), };
+    /// let fut = index.delete_object(&object_1.object_id)
+    ///     .map(|res| { dbg!(&res); })
+    ///     .map_err(|err| { eprintln!("{:?}", err); });
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn delete_object(
+        &self,
+        object_id: &str,
+    ) -> impl Future<Item = DeleteObjectResult, Error = FetchError> {
+        let uri = format!(
+            "{}/1/indexes/{}/{}",
+            self.base_url, self.index_name, object_id
+        );
+        AsyncClient::new()
+            .delete(&uri)
+            .headers(self.get_headers())
+            .send()
+            .and_then(|mut res| {
+                let body = mem::replace(res.body_mut(), Decoder::empty());
+                body.concat2()
+            })
+            .from_err::<FetchError>()
+            .and_then(|body| Ok(serde_json::from_slice(&body)?))
+            .from_err::<FetchError>()
+    }
+    /// Get the index's settings.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{Client, SearchQueryBuilder};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User;
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// let fut = index.get_settings()
+    ///     .map(|settings| {
+    ///         dbg!(&settings.hits_per_page); // 20
+    ///     })
+    ///     .map_err(|err| { eprintln!("{:?}", err); });
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn get_settings(&self) -> impl Future<Item = settings::IndexSettings, Error = FetchError> {
+        let uri = format!("{}/indexes/{}/settings", self.base_url, self.index_name);
+        AsyncClient::new()
+            .get(&uri)
+            .headers(self.get_headers())
+            .send()
+            .and_then(|mut res| {
+                let body = mem::replace(res.body_mut(), Decoder::empty());
+                body.concat2()
+            })
+            .from_err::<FetchError>()
+            .and_then(|body| Ok(serde_json::from_slice(&body)?))
+            .from_err::<FetchError>()
+    }
+    /// Set the index's settings.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{
+    /// #    Client, SearchQueryBuilder,
+    /// #    settings::{IndexSettingsBuilder, SortFacetValuesBy}
+    /// # };
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User;
+    /// # fn main() -> Result<(), Box<std::error::Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// let settings = IndexSettingsBuilder::default()
+    ///     .hits_per_page(30)
+    ///     .sort_facet_values_by(SortFacetValuesBy::Count)
+    ///     .build()
+    ///     .unwrap();
+    /// let fut = index.set_settings(settings, None)
+    ///     .map(|res| { dbg!(&res); })
+    ///     .map_err(|err| { eprintln!("{:?}", err); });
+    /// tokio::run(fut);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn set_settings(
+        &self,
+        settings: settings::IndexSettings,
+        forward_to_replicas: Option<bool>,
+    ) -> impl Future<Item = UpdateOperationResult, Error = FetchError> {
+        let forward_to_replicas = forward_to_replicas.unwrap_or(false);
+        let uri = format!("{}/indexes/{}/settings", self.base_url, self.index_name);
+        AsyncClient::new()
+            .put(&uri)
+            .headers(self.get_headers())
+            .json(&settings)
+            .query(&[("forwardToReplicas", forward_to_replicas)])
+            .send()
+            .and_then(|mut res| {
+                let body = mem::replace(res.body_mut(), Decoder::empty());
+                body.concat2()
+            })
+            .from_err::<FetchError>()
+            .and_then(|body| Ok(serde_json::from_slice(&body)?))
+            .from_err::<FetchError>()
     }
 }
