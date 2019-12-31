@@ -10,7 +10,9 @@
 
 ```rust
 use algoliasearch::Client;
-use futures::Future;
+// needs tokio as a dependency,
+// tokio = { version = "0.2", features = ["macros"] }
+use tokio;
 
 #[derive(Deserialize)]
 struct User {
@@ -18,21 +20,18 @@ struct User {
     age: u32,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<Error>> {
     // read ALGOLIA_APPLICATION_ID and ALGOLIA_API_KEY from env
-    let index = Client::default().init_index::<User>("INDEX_NAME");
+    let index = Client::default().init_index::<User>("users");
 
-    let test = index
-        .search_async("Bernardo")
-        .map(|res| {
-            dbg!(res.hits); // [User { name: "Bernardo", age: 32} ]
-        })
-        .map_err(|err| println!("error: {:?}", err));
-    tokio::run(test);
+    let res = index.search("Bernardo").await?;
+    dbg!(res.hits); // [User { name: "Bernardo", age: 32} ]
+
+    Ok(())
 }
 ```
 
 ### todo
 
 - Add all the remaining calls
-- Find how to unify async and sync implementations
