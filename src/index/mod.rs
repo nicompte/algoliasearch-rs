@@ -11,6 +11,7 @@ use serde::{
 use crate::error::Error;
 
 pub mod settings;
+pub mod task;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -539,7 +540,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize, Debug)]
     /// # struct User;
-    ///! #[tokio::main]
+    /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
     /// let object_1 = index.get_object(&"THE_ID", None).await?;
@@ -575,16 +576,16 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
     /// # struct User { name: String, age: u32, };
-    ///! #[tokio::main]
+    /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
     /// let object_1 = User { name: "Bernardo".into(), age: 32 };
-    /// index.add_object(object_1).await?;
+    /// index.add_object(&object_1).await?;
     /// #   Ok(())
     /// # }
     /// ```
-    pub async fn add_object(&self, object: T) -> Result<AddObjectResult, Error> {
-        let uri = format!("{}/1/indexes/{}", self.base_url, self.index_name);
+    pub async fn add_object(&self, object: &T) -> Result<AddObjectResult, Error> {
+        let uri = format!("{}/indexes/{}", self.base_url, self.index_name);
         Client::new()
             .post(&uri)
             .headers(self.get_headers())
@@ -601,17 +602,17 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
     /// # struct User { name: String, age: u32, };
-    ///! #[tokio::main]
+    /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
     /// let object_1 = User { name: "Bernardo".into(), age: 32 };
     /// let object_2 = User { name: "Esmeralda".into(), age: 45 };
-    /// index.add_objects(&[object_1, object_2]).await?;
+    /// index.add_objects(&[&object_1, &object_2]).await?;
     /// #   Ok(())
     /// # }
     /// ```
-    pub async fn add_objects(&self, objects: &[T]) -> Result<BatchedOperatioResult, Error> {
-        let uri = format!("{}/1/indexes/{}/batch", self.base_url, self.index_name);
+    pub async fn add_objects(&self, objects: &[&T]) -> Result<BatchedOperatioResult, Error> {
+        let uri = format!("{}/indexes/{}/batch", self.base_url, self.index_name);
         let requests = objects.iter().fold(vec![], |mut acc, x| {
             acc.push(BatchedOperationItem {
                 action: "addObject".to_string(),
@@ -630,51 +631,67 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
             .await
             .map_err(|e| e.into())
     }
-    /// Add/update an object to the index. The object will be updated if you provide
-    /// a `user_id` property, and added otherwise.
+    /// Add or replace an object with a given object ID.
+    /// If the object does not exist, it will be created. If it already exists, it will be replaced.
     /// ```no_run
     /// # #[macro_use] extern crate serde_derive;
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
-    /// # struct User;
-    ///! #[tokio::main]
+    /// # struct User { object_id: String };
+    /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
-    /// #   let object_1 = User;
-    /// index.update_object(object_1).await?;
+    /// #   let object_1 = User { object_id: String::from("123") };
+    /// index.update_object(&object_1, &object_1.object_id).await?;
     /// #   Ok(())
     /// # }
     /// ```
-    pub async fn update_object(&self, object: T) -> Result<UpdateOperationResult, Error> {
-        let uri = format!("{}/1/indexes/{}", self.base_url, self.index_name);
-        Client::new()
+    pub async fn update_object(
+        &self,
+        object: &T,
+        object_id: &str,
+    ) -> Result<UpdateOperationResult, Error> {
+        let uri = format!(
+            "{}/indexes/{}/{}",
+            self.base_url, self.index_name, object_id
+        );
+        dbg!(&uri);
+        let res = Client::new()
             .put(&uri)
             .headers(self.get_headers())
-            .json(&object)
+            .json(object)
             .send()
-            .await?
-            .json()
-            .await
-            .map_err(|e| e.into())
+            .await?;
+        dbg!(res.text().await?);
+        /*.json()
+        .await
+        .map_err(|e| e.into())*/
+        Ok(UpdateOperationResult {
+            task_id: 22,
+            updated_at: DateTime::<Utc>::from_utc(
+                chrono::NaiveDateTime::from_timestamp(61, 0),
+                Utc,
+            ),
+        })
     }
-    /// Add/update several objects to the index. The objects will be updated if you provide
-    /// a `user_id` property, and added otherwise.
+    /// Add or replace several objects with a given object ID.
+    /// If the object does not exist, it will be created. If it already exists, it will be replaced..
     /// ```no_run
     /// # #[macro_use] extern crate serde_derive;
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
     /// # struct User;
-    ///! #[tokio::main]
+    /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
     /// #   let object_1 = User;
     /// #   let object_2 = User;
-    /// index.update_objects(&[object_1, object_2]).await?;
+    /// index.update_objects(&[&object_1, &object_2]).await?;
     /// #   Ok(())
     /// # }
     /// ```
-    pub async fn update_objects(&self, objects: &[T]) -> Result<BatchedOperatioResult, Error> {
-        let uri = format!("{}/1/indexes/{}/batch", self.base_url, self.index_name);
+    pub async fn update_objects(&self, objects: &[&T]) -> Result<BatchedOperatioResult, Error> {
+        let uri = format!("{}/indexes/{}/batch", self.base_url, self.index_name);
         let requests = objects.iter().fold(vec![], |mut acc, x| {
             acc.push(BatchedOperationItem {
                 action: "updateObject".to_string(),
@@ -699,7 +716,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
     /// # struct User { object_id: String, };
-    ///! #[tokio::main]
+    /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
     /// #   let object_1 = User { object_id: "test".into(), };
@@ -709,7 +726,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// ```
     pub async fn delete_object(&self, object_id: &str) -> Result<DeleteObjectResult, Error> {
         let uri = format!(
-            "{}/1/indexes/{}/{}",
+            "{}/indexes/{}/{}",
             self.base_url, self.index_name, object_id
         );
         Client::new()
@@ -727,7 +744,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
     /// # struct User;
-    ///! #[tokio::main]
+    /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
     /// let settings = index.get_settings().await?;
@@ -757,7 +774,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # };
     /// # #[derive(Serialize, Deserialize)]
     /// # struct User;
-    ///! #[tokio::main]
+    /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
     /// let settings = IndexSettingsBuilder::default()
@@ -796,5 +813,38 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
         );
         headers.insert(crate::API_KEY_HEADER, self.api_key.parse().unwrap());
         headers
+    }
+
+    /// Get a task's status.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use futures::Future;
+    /// # use algoliasearch::{
+    /// #    Client, SearchQueryBuilder,
+    /// #    Error,
+    /// #    settings::{IndexSettingsBuilder, SortFacetValuesBy}
+    /// # };
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// let task = index.get_task_status(123);
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub async fn get_task_status(&self, task_id: u64) -> Result<task::TaskStatus, Error> {
+        let uri = format!(
+            "{}/indexes/{}/task/{}",
+            self.base_url, self.index_name, task_id
+        );
+        Client::new()
+            .get(&uri)
+            .headers(self.get_headers())
+            .send()
+            .await?
+            .json()
+            .await
+            .map_err(|e| e.into())
     }
 }
