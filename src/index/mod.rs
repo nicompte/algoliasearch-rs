@@ -655,24 +655,15 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
             "{}/indexes/{}/{}",
             self.base_url, self.index_name, object_id
         );
-        dbg!(&uri);
-        let res = Client::new()
+        Client::new()
             .put(&uri)
             .headers(self.get_headers())
             .json(object)
             .send()
-            .await?;
-        dbg!(res.text().await?);
-        /*.json()
-        .await
-        .map_err(|e| e.into())*/
-        Ok(UpdateOperationResult {
-            task_id: 22,
-            updated_at: DateTime::<Utc>::from_utc(
-                chrono::NaiveDateTime::from_timestamp(61, 0),
-                Utc,
-            ),
-        })
+            .await?
+            .json()
+            .await
+            .map_err(|e| e.into())
     }
     /// Add or replace several objects with a given object ID.
     /// If the object does not exist, it will be created. If it already exists, it will be replaced..
