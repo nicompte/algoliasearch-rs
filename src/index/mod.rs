@@ -575,7 +575,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # #[macro_use] extern crate serde_derive;
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
-    /// # struct User { name: String, age: u32, };
+    /// # struct User { name: String, age: u32, }
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
@@ -601,7 +601,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # #[macro_use] extern crate serde_derive;
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
-    /// # struct User { name: String, age: u32, };
+    /// # struct User { name: String, age: u32, }
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
@@ -637,7 +637,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # #[macro_use] extern crate serde_derive;
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
-    /// # struct User { object_id: String };
+    /// # struct User { object_id: String }
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
@@ -706,7 +706,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # #[macro_use] extern crate serde_derive;
     /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
     /// # #[derive(Serialize, Deserialize)]
-    /// # struct User { object_id: String, };
+    /// # struct User { object_id: String, }
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
