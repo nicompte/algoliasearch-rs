@@ -1,4 +1,4 @@
-# algoliasearch 
+# algoliasearch
 
 `algoliasearch` is a (really incomplete) rust implemention of an algolia client.
 
@@ -11,12 +11,12 @@
 ```rust
 use algoliasearch::Client;
 // needs tokio as a dependency,
-// tokio = { version = "0.2", features = ["macros"] }
+// tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
 use tokio;
 
 #[derive(Deserialize)]
 struct User {
-    name: String, 
+    name: String,
     age: u32,
 }
 

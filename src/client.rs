@@ -21,15 +21,6 @@ impl Client {
             api_key: Some(api_key.to_owned()),
         }
     }
-    /// Itinialize the client. It will read the environenment or .env `ALGOLIA_APPLICATION_ID` and `ALGOLIA_API_KEY` variables to be used as
-    /// [APPLICATION_ID](https://www.algolia.com/doc/guides/sending-and-managing-data/send-and-update-your-data/how-to/importing-with-the-api/#application-id)
-    /// and [API_KEY](https://www.algolia.com/doc/guides/sending-and-managing-data/send-and-update-your-data/how-to/importing-with-the-api/#api-key).
-    pub fn default() -> Client {
-        Client {
-            application_id: env::var(ALGOLIA_APPLICATION_ID_VARIABLE).ok(),
-            api_key: env::var(ALGOLIA_API_KEY_VARIABLE).ok(),
-        }
-    }
     /// Set your client's [APPLICATION_ID](https://www.algolia.com/doc/guides/sending-and-managing-data/send-and-update-your-data/how-to/importing-with-the-api/#application-id).
     pub fn application_id(mut self, application_id: &str) -> Client {
         self.application_id = Some(application_id.to_owned());
@@ -63,6 +54,18 @@ impl Client {
                 self.application_id.expect("can't panic")
             ),
             index_type: PhantomData,
+        }
+    }
+}
+
+impl Default for Client {
+    /// Itinialize the client. It will read the environenment or .env `ALGOLIA_APPLICATION_ID` and `ALGOLIA_API_KEY` variables to be used as
+    /// [APPLICATION_ID](https://www.algolia.com/doc/guides/sending-and-managing-data/send-and-update-your-data/how-to/importing-with-the-api/#application-id)
+    /// and [API_KEY](https://www.algolia.com/doc/guides/sending-and-managing-data/send-and-update-your-data/how-to/importing-with-the-api/#api-key).
+    fn default() -> Client {
+        Client {
+            application_id: env::var(ALGOLIA_APPLICATION_ID_VARIABLE).ok(),
+            api_key: env::var(ALGOLIA_API_KEY_VARIABLE).ok(),
         }
     }
 }
