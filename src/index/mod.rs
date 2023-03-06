@@ -729,6 +729,30 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
             .await
             .map_err(|e| e.into())
     }
+    /// Clear all objects from an index.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// index.clear_objects().await?;
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub async fn clear_objects(&self) -> Result<UpdateOperationResult, Error> {
+        let uri = format!("{}/indexes/{}/clear", self.base_url, self.index_name);
+        Client::new()
+            .post(&uri)
+            .headers(self.get_headers())
+            .send()
+            .await?
+            .json()
+            .await
+            .map_err(|e| e.into())
+    }
     /// Get the index's settings.
     /// ```no_run
     /// # #[macro_use] extern crate serde_derive;
