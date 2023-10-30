@@ -59,7 +59,7 @@ impl Client {
 }
 
 impl Default for Client {
-    /// Itinialize the client. It will read the environenment or .env `ALGOLIA_APPLICATION_ID` and `ALGOLIA_API_KEY` variables to be used as
+    /// Initialize the client. It will read the environment or .env `ALGOLIA_APPLICATION_ID` and `ALGOLIA_API_KEY` variables to be used as
     /// [APPLICATION_ID](https://www.algolia.com/doc/guides/sending-and-managing-data/send-and-update-your-data/how-to/importing-with-the-api/#application-id)
     /// and [API_KEY](https://www.algolia.com/doc/guides/sending-and-managing-data/send-and-update-your-data/how-to/importing-with-the-api/#api-key).
     fn default() -> Client {
