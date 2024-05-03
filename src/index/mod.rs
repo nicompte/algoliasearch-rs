@@ -137,6 +137,7 @@ pub enum StringOrVecOfString {
 }
 
 #[derive(Debug, Serialize, Default, Builder)]
+#[serde(rename_all = "camelCase")]
 #[builder(default)]
 /// algolia search parameters
 /// see [https://www.algolia.com/doc/api-reference/search-api-parameters/](https://www.algolia.com/doc/api-reference/search-api-parameters/)
@@ -408,6 +409,26 @@ pub struct SearchQuery {
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/percentileComputation/](https://www.algolia.com/doc/api-reference/api-parameters/percentileComputation/)
     percentile_computation: Option<u64>,
+}
+
+#[cfg(test)]
+mod query_builder {
+    use super::*;
+    use serde_json;
+
+    #[test]
+    fn test_serialize() {
+        let query = SearchQueryBuilder::default()
+            .page(1)
+            .hits_per_page(6)
+            .build()
+            .unwrap();
+
+        assert_eq!(
+            serde_json::to_string(&query).unwrap(),
+            r#"{"query":null,"page":1,"hitsPerPage":6}"#
+        );
+    }
 }
 
 #[derive(Serialize)]
