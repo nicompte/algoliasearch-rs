@@ -199,7 +199,7 @@ pub struct SearchQuery {
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/sortFacetValuesBy/](https://www.algolia.com/doc/api-reference/api-parameters/sortFacetValuesBy/)
-    sort_facet_values_by: Option<crate::settings::SortFacetValuesBy>,
+    sort_facet_values_by: Option<settings::SortFacetValuesBy>,
 
     // highlighting-snippeting
     #[builder(setter(into))]
@@ -259,7 +259,7 @@ pub struct SearchQuery {
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/typoTolerance/](https://www.algolia.com/doc/api-reference/api-parameters/typoTolerance/)
-    typo_tolerance: Option<crate::settings::TypoTolerance>,
+    typo_tolerance: Option<settings::TypoTolerance>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/allowTyposOnNumericTokens/](https://www.algolia.com/doc/api-reference/api-parameters/allowTyposOnNumericTokens/)
@@ -304,11 +304,11 @@ pub struct SearchQuery {
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/ignorePlurals/](https://www.algolia.com/doc/api-reference/api-parameters/ignorePlurals/)
-    ignore_plurals: Option<crate::settings::IgnorePlurals>,
+    ignore_plurals: Option<settings::IgnorePlurals>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/removeStopWords/](https://www.algolia.com/doc/api-reference/api-parameters/removeStopWords/)
-    remove_stop_words: Option<crate::settings::IgnorePlurals>,
+    remove_stop_words: Option<settings::IgnorePlurals>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/queryLanguages/](https://www.algolia.com/doc/api-reference/api-parameters/queryLanguages/)
@@ -318,11 +318,11 @@ pub struct SearchQuery {
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/queryType/](https://www.algolia.com/doc/api-reference/api-parameters/queryType/)
-    query_type: Option<crate::settings::QueryType>,
+    query_type: Option<settings::QueryType>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/removeWordsIfNoResults/](https://www.algolia.com/doc/api-reference/api-parameters/removeWordsIfNoResults/)
-    remove_words_if_no_results: Option<crate::settings::RemoveWordsIfNoResults>,
+    remove_words_if_no_results: Option<settings::RemoveWordsIfNoResults>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/advancedSyntax/](https://www.algolia.com/doc/api-reference/api-parameters/advancedSyntax/)
@@ -338,11 +338,11 @@ pub struct SearchQuery {
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/exactOnSingleWordQuery/](https://www.algolia.com/doc/api-reference/api-parameters/exactOnSingleWordQuery/)
-    exact_on_single_word_query: Option<crate::settings::ExactOnSingleWordQuery>,
+    exact_on_single_word_query: Option<settings::ExactOnSingleWordQuery>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/alternativesAsExact/](https://www.algolia.com/doc/api-reference/api-parameters/alternativesAsExact/)
-    alternatives_as_exact: Option<crate::settings::AlternativesAsExact>,
+    alternatives_as_exact: Option<settings::AlternativesAsExact>,
 
     // query-rules
     #[builder(setter(into))]
@@ -368,7 +368,7 @@ pub struct SearchQuery {
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/distinct/](https://www.algolia.com/doc/api-reference/api-parameters/distinct/)
-    distinct: Option<crate::settings::Distinct>,
+    distinct: Option<settings::Distinct>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/getRankingInfo/](https://www.algolia.com/doc/api-reference/api-parameters/getRankingInfo/)
@@ -396,7 +396,7 @@ pub struct SearchQuery {
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/minProximity/](https://www.algolia.com/doc/api-reference/api-parameters/minProximity/)
-    min_proximity: Option<crate::settings::MinProximity>,
+    min_proximity: Option<settings::MinProximity>,
     #[builder(setter(into))]
     #[serde(skip_serializing_if = "Option::is_none")]
     /// [https://www.algolia.com/doc/api-reference/api-parameters/responseFields/](https://www.algolia.com/doc/api-reference/api-parameters/responseFields/)

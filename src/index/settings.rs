@@ -310,7 +310,7 @@ mod ignore_plurals_tests {
     }
 }
 
-/// [https://www.algolia.com/doc/api-reference/api-parameters/queryType/](https://www.algolia.com/doc/api-reference/api-parameters/queryType/)
+// [https://www.algolia.com/doc/api-reference/api-parameters/queryType/](https://www.algolia.com/doc/api-reference/api-parameters/queryType/)
 enum_str!(QueryType {
     PrefixLast("prefixLast"),
     PrefixAll("prefixAll"),
