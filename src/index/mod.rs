@@ -12,6 +12,7 @@ use crate::error::Error;
 
 pub mod settings;
 pub mod task;
+pub mod operation;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -483,7 +484,7 @@ struct BatchedOperation<T> {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct BatchedOperatioResult {
+pub struct BatchedOperationResult {
     #[serde(rename = "taskID")]
     pub task_id: u64,
     #[serde(rename = "objectIDs")]
@@ -632,7 +633,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// #   Ok(())
     /// # }
     /// ```
-    pub async fn add_objects(&self, objects: &[&T]) -> Result<BatchedOperatioResult, Error> {
+    pub async fn add_objects(&self, objects: &[&T]) -> Result<BatchedOperationResult, Error> {
         let uri = format!("{}/indexes/{}/batch", self.base_url, self.index_name);
         let requests = objects.iter().fold(vec![], |mut acc, x| {
             acc.push(BatchedOperationItem {
@@ -702,7 +703,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// #   Ok(())
     /// # }
     /// ```
-    pub async fn update_objects(&self, objects: &[&T]) -> Result<BatchedOperatioResult, Error> {
+    pub async fn update_objects(&self, objects: &[&T]) -> Result<BatchedOperationResult, Error> {
         let uri = format!("{}/indexes/{}/batch", self.base_url, self.index_name);
         let requests = objects.iter().fold(vec![], |mut acc, x| {
             acc.push(BatchedOperationItem {
@@ -732,7 +733,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
     /// #   let object_1 = User { object_id: "test".into(), };
-    /// index.delete_object(&object_1.object_id).await?;
+    /// #   index.delete_object(&object_1.object_id).await?;
     /// #   Ok(())
     /// # }
     /// ```
@@ -865,7 +866,7 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<Error>> {
     /// #   let index = Client::default().init_index::<User>("users");
-    /// let task = index.get_task_status(123);
+    /// #   let task = index.get_task_status(123);
     /// #   Ok(())
     /// # }
     /// ```
@@ -879,6 +880,70 @@ impl<T: DeserializeOwned + Serialize> Index<T> {
             .headers(self.get_headers())
             .send()
             .await?
+            .json()
+            .await
+            .map_err(|e| e.into())
+    }
+
+    /// Delete an index.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use algoliasearch::{Error, Client, SearchQueryBuilder};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User { object_id: String, }
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");    ///
+    /// #   index.delete_index().await?;
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub async fn delete_index(&self) -> Result<operation::IndexOperationResult, Error> {
+        let uri = format!(
+            "{}/indexes/{}",
+            self.base_url, self.index_name
+        );
+        Client::new()
+            .delete(&uri)
+            .headers(self.get_headers())
+            .send()
+            .await
+            .json()
+            .await
+            .map_err(|e| e.into())
+    }
+
+    /// Copy or move an existing index.
+    /// ```no_run
+    /// # #[macro_use] extern crate serde_derive;
+    /// # use algoliasearch::{Error, Client, SearchQueryBuilder, index};
+    /// # #[derive(Serialize, Deserialize)]
+    /// # struct User { object_id: String, }
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<Error>> {
+    /// #   let index = Client::default().init_index::<User>("users");
+    /// #   // Rename the index
+    /// #   let operation = index::operation::IndexOperationResponse{
+    /// #                     operation: "move".to_string(),
+    /// #                     destination: "user2".to_string(),
+    /// #                     scope: None,
+    /// #   };
+    /// #   index.index_operation(operation).await?;
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub async fn index_operation(&self, operation: operation::IndexOperationResponse) -> Result<operation::IndexOperationResult, Error> {
+        let uri = format!(
+            "{}/indexes/{}/operation",
+            self.base_url, self.index_name
+        );
+
+        Client::new()
+            .post(&uri)
+            .headers(self.get_headers())
+            .json(&operation)
+            .send()
+            .await
             .json()
             .await
             .map_err(|e| e.into())
